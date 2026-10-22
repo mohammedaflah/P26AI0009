@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # ML Assignment 2: Bagging, Boosting and Bias-Variance
 
 Name: Mohammed Aflah | Roll number: p26ai0009 | Seed: 260009
@@ -25,7 +24,6 @@ All results are deterministic given the seed.
 
 ## Notes
 - first run Q1 and Q2, then Q3, because Q3 reads `results/selected.json`.
-EOF
-The commit hash on page 1 of the report (8bd3376) is the commit containing the code and results; the report was added in the following commit.
 
+  
 The commit hash on page 1 of the report (8bd3376) is the commit containing the code and results; the report was added in the following commit.
