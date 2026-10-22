@@ -1,0 +1,8 @@
+{
+  "student_name": "Mohammed_Aflah",
+  "roll_number": "p26ai0009",
+  "seed": 260009,
+  "n_train": 240,
+  "n_val": 80,
+  "n_test": 80
+}

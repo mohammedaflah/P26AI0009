@@ -1,0 +1,9 @@
+{
+  "tree": {
+    "max_depth": null,
+    "min_samples_leaf": 1
+  },
+  "bag_B": 200,
+  "boost_depth": 4,
+  "boost_rounds": 100
+}

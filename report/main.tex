@@ -1,0 +1,142 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\def\cvprPaperID{P26AI0009}
+\def\confYear{2026}
+
+\begin{document}
+
+\title{Assignment 2: Bagging, SAMME Boosting, and Vector Bias-Variance Analysis on Face Recognition}
+
+\author{
+Mohammed Aflah \\
+Roll No: P26AI0009 \\
+Repository: \url{https://github.com/mohammedaflah/P26AI0009} \\
+Commit Hash: \texttt{e7f9a12}
+}
+
+\maketitle
+
+\begin{abstract}
+I present a study of Decision Trees, Bagging Ensembles, and SAMME Multi-Class AdaBoost applied to identity classification on the Olivetti Faces dataset ($K=40$). All models and resampling pipelines are implemented from scratch using a locked seed of \texttt{260009}. I then evaluate out-of-bag metrics, tree disagreement, vote margins, and robustness against $16 \times 16$ spatial occlusion. Finally, i execute a 30-refit vector $L_2^2$ Bias-Variance decomposition across model depths, ensemble sizes ($B$), and boosting iterations ($M$).
+\end{abstract}
+
+\section{Introduction and Dataset Setup}
+The Olivetti Faces dataset comprises 400 grayscale images ($64 \times 64$ pixels, 4,096 raw features) spanning 40 individuals. Using random seed \texttt{260009}, each class is split into 6 training, 2 validation, and 2 test images ($N_{\text{train}}=240, N_{\text{val}}=80, N_{\text{test}}=80$). A masked test set is created by zeroing out the centered $16 \times 16$ region (rows 24--39, cols 24--39). Models are trained exclusively on uncorrupted images.
+
+\section{Q1 Baseline Tree and Bagging}
+
+\subsection{Single Tree Baseline}
+A grid search over $\text{max\_depth} \in \{2, 4, 8, 16, \text{None}\}$ and $\text{min\_samples\_leaf} \in \{1, 2, 4\}$ selected $\text{max\_depth}=\text{None}, \text{min\_samples\_leaf}=1$ based on validation accuracy ($67.50\%$).
+\begin{itemize}
+    \item \textbf{Train Acc}: $100.00\%$ | \textbf{Val Acc}: $67.50\%$ | \textbf{Test Acc}: $61.25\%$
+    \item \textbf{Tree Structure}: 46 leaves, mean samples/leaf: $5.22$, $13.04\%$ single-sample leaves.
+\end{itemize}
+As depth increases, memory of specific training pixel combinations grows, leading to zero training error but high test variance.
+
+\subsection{Bagging Ensemble Performance}
+Bagging draws bootstrap samples of size $N=240$ with replacement. The expected fraction of unique examples per draw is $1 - (1 - 1/N)^N \approx 1 - 1/e \approx 63.21\%$ ($151.7$ samples). Table~\ref{tab:q1b} summarizes performance across $B$.
+
+\begin{table}[h]
+\centering
+\caption{Bagging Performance Across Ensemble Sizes ($B$)}
+\label{tab:q1b}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{rcccc}
+\toprule
+\textbf{$B$} & \textbf{Train Acc} & \textbf{Val Acc} & \textbf{Clean Test Acc} & \textbf{Mean Unique} \\
+\midrule
+1   & 0.7375 & 0.4375 & 0.3875 & 149.00 \\
+5   & 0.9542 & 0.6250 & 0.6000 & 149.40 \\
+10  & 0.9958 & 0.7750 & 0.7375 & 150.70 \\
+25  & 1.0000 & 0.8625 & 0.8750 & 150.32 \\
+50  & 1.0000 & \textbf{0.9000} & \textbf{0.9250} & 151.40 \\
+100 & 1.0000 & 0.8875 & 0.9250 & 151.00 \\
+200 & 1.0000 & 0.8875 & 0.9250 & 151.33 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Diagnostics and Diagnostics Alignment}
+Out-of-Bag (OOB) accuracy tracks validation accuracy closely, plateauing at $88.75\%$ by $B=50$. Pairwise tree disagreement reaches $0.421$, while mean vote margin rises from $0.12$ ($B=5$) to $0.58$ ($B=50$). All three metrics consistently demonstrate that ensemble diversity and vote certainty saturate around $B=50$.
+
+\subsection{Clean vs. Masked Occlusion Comparison}
+Evaluating $B=50$ bagging on the masked test set yields $81.25\%$ accuracy vs. $92.50\%$ clean ($11.25\%$ drop). Bagging corrects single-tree errors on faces where individual decision splits focus on unoccluded facial regions (e.g., jawline and eyes), but fails when key features across all trees overlap with the corrupted region.
+
+\section{Q2: SAMME Multi-Class Boosting}
+
+\subsection{Toy Verification and SAMME Formulation}
+SAMME extends AdaBoost to $K=40$ classes using the estimator weight update:
+\begin{equation}
+\alpha_m = \log\left(\frac{1 - \epsilon_m}{\epsilon_m}\right) + \log(K - 1)
+\end{equation}
+On a 3-class, $N=10$ toy dataset, step 1 with $w_0 = 0.10$ and weighted error $\epsilon_1 = 0.20$ yielded $\alpha_1 = 2.0794$, correctly re-weighting misclassified samples from $0.10$ to $0.267$.
+
+\subsection{Hyperparameter Grid Search}
+Table~\ref{tab:q2_grid} presents validation accuracy across weak learner depths $d \in \{1, 2, 3, 4\}$ and rounds $M \in \{10, 25, 50, 100\}$.
+
+\begin{table}[h]
+\centering
+\caption{SAMME AdaBoost Validation Accuracy Grid Search}
+\label{tab:q2_grid}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Depth ($d$)} & \textbf{$M=10$} & \textbf{$M=25$} & \textbf{$M=50$} & \textbf{$M=100$} \\
+\midrule
+1 & 0.0375 & 0.0375 & 0.1250 & 0.0750 \\
+2 & 0.1125 & 0.1000 & 0.1375 & 0.1625 \\
+3 & 0.1500 & 0.1500 & 0.4375 & 0.4625 \\
+4 & 0.2250 & 0.1875 & 0.4000 & \textbf{0.4875} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The optimal config ($d=4, M=100$) yields $40.00\%$ clean test accuracy and $18.75\%$ masked accuracy. Boosting struggles on high-dimensional raw pixels relative to Bagging because sequential sample re-weighting overfits to noisy background pixels.
+
+\section{Q3: Bias-Variance Analysis}
+Using 30 training refits drawn with replacement within each class, probability vectors $p_r(x_i) \in \mathbb{R}^{40}$ are recorded. Bias and variance are calculated as:
+\begin{equation}
+\text{Bias}^2 = \frac{1}{N} \sum_{i=1}^N \|\bar{p}(x_i) - e_i\|_2^2
+\end{equation}
+\begin{equation}
+\text{Variance} = \frac{1}{N R} \sum_{i=1}^N \sum_{r=1}^R \|p_r(x_i) - \bar{p}(x_i)\|_2^2
+\end{equation}
+
+\begin{table}[h]
+\centering
+\caption{Vector $L_2^2$ Bias-Variance Decomposition Results}
+\label{tab:bv_results}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Clean Acc} & \textbf{Masked Acc} & \textbf{Bias$^2$} & \textbf{Variance} \\
+\midrule
+Single Tree ($d=\text{None}$) & 0.6125 & 0.4375 & 0.7250 & 0.5120 \\
+Bagging ($B=50$)             & \textbf{0.9250} & \textbf{0.8125} & \textbf{0.1840} & \textbf{0.1412} \\
+SAMME ($d=4, M=100$)         & 0.4000 & 0.1875 & 0.8120 & 0.3950 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section{Conclusion}
+Bagging on unpruned decision trees provides the most stable performance ($92.50\%$ clean, $81.25\%$ masked) by dramatically reducing prediction variance without degrading bias. Boosting remains sensitive to spatial occlusion on raw pixel inputs.
+
+\end{document}

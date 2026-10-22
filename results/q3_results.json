@@ -1,0 +1,88 @@
+{
+  "selected_models": {
+    "single_tree": {
+      "bias2": 0.41772222222222216,
+      "variance": 0.6447777777777778,
+      "acc_mean": 0.46875,
+      "acc_std": 0.048814060474416596,
+      "masked_acc_mean": 0.31375000000000003
+    },
+    "bagging": {
+      "bias2": 0.5036116201388889,
+      "variance": 0.020164650694444446,
+      "acc_mean": 0.8025000000000001,
+      "acc_std": 0.05375484474290047,
+      "masked_acc_mean": 0.5195833333333335
+    },
+    "boosting": {
+      "bias2": 0.8895510653532128,
+      "variance": 0.018193803884256596,
+      "acc_mean": 0.30041666666666667,
+      "acc_std": 0.07742491882821419,
+      "masked_acc_mean": 0.2745833333333333
+    }
+  },
+  "depth_sweep": [
+    {
+      "depth": 2,
+      "tree": {
+        "bias2": 1.81575,
+        "var": 0.06758333333333333,
+        "acc": 0.05833333333333334
+      },
+      "bag100": {
+        "bias2": 0.9338234527777779,
+        "var": 0.010449047222222223,
+        "acc": 0.1475
+      },
+      "variance_removed": 0.057134286111111106,
+      "variance_removed_pct": 84.53901767365392,
+      "acc_gain": 0.08916666666666664,
+      "leaves": 3,
+      "mean_samples_per_leaf": 80.0,
+      "frac_single_leaf": 0.0,
+      "bag_test_disagreement": 0.9552196969696969
+    },
+    {
+      "depth": 8,
+      "tree": {
+        "bias2": 1.3997777777777778,
+        "var": 0.27688888888888885,
+        "acc": 0.16166666666666665
+      },
+      "bag100": {
+        "bias2": 0.8121021694444444,
+        "var": 0.016195497222222223,
+        "acc": 0.42250000000000004
+      },
+      "variance_removed": 0.2606933916666666,
+      "variance_removed_pct": 94.15090389245586,
+      "acc_gain": 0.26083333333333336,
+      "leaves": 9,
+      "mean_samples_per_leaf": 26.666666666666668,
+      "frac_single_leaf": 0.0,
+      "bag_test_disagreement": 0.9139999999999997
+    },
+    {
+      "depth": null,
+      "tree": {
+        "bias2": 0.41772222222222216,
+        "var": 0.6447777777777778,
+        "acc": 0.46875
+      },
+      "bag100": {
+        "bias2": 0.5037794472222222,
+        "var": 0.02420280277777778,
+        "acc": 0.7904166666666667
+      },
+      "variance_removed": 0.620574975,
+      "variance_removed_pct": 96.24633422367741,
+      "acc_gain": 0.32166666666666666,
+      "leaves": 46,
+      "mean_samples_per_leaf": 5.217391304347826,
+      "frac_single_leaf": 0.13043478260869565,
+      "bag_test_disagreement": 0.7823712121212123
+    }
+  ],
+  "largest_gain_depth": null
+}
